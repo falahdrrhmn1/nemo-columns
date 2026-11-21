@@ -629,6 +629,11 @@ nemo_window_setup_rgba_visual (NemoWindow *window)
 	if (gdk_screen_is_composited (screen)) {
 		visual = gdk_screen_get_rgba_visual (screen);
 	}
+	/* Lets gtk.css target only windows that can really be translucent. */
+	if (visual != NULL) {
+		gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (window)),
+					     "nemo-translucent");
+	}
 	if (visual == NULL) {
 		visual = gdk_screen_get_system_visual (screen);
 	}
