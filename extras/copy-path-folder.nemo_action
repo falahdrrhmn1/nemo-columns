@@ -1,0 +1,9 @@
+[Nemo Action]
+Name=Copy Folder Path
+Name[id]=Salin Path Folder Ini
+Comment=Salin path folder yang sedang dibuka ke clipboard
+Exec=@HOME@/.local/share/nemo/actions/copy-path.sh %P
+Icon-Name=edit-copy
+Selection=none
+Extensions=any;
+Dependencies=xclip;

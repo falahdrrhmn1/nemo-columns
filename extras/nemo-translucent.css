@@ -1,0 +1,25 @@
+/* === Nemo transparan (hanya Nemo hasil build ~/nemo-src, Nemo apt tidak terpengaruh) ===
+ * Angka terakhir di rgba = kepekatan latar (1 = tidak transparan). Hapus blok ini untuk mematikan. */
+window.nemo-window.nemo-translucent {
+    background-color: rgba(24, 24, 24, 0.80);
+    background-image: none;
+}
+window.nemo-translucent grid, window.nemo-translucent box, window.nemo-translucent paned,
+window.nemo-translucent viewport, window.nemo-translucent scrolledwindow,
+window.nemo-translucent toolbar, window.nemo-translucent statusbar,
+window.nemo-translucent .primary-toolbar, window.nemo-translucent .nemo-window-pane,
+window.nemo-translucent .nemo-column-view, window.nemo-translucent .nemo-column-view-columns,
+window.nemo-translucent .nemo-column-view-column,
+window.nemo-translucent .view:not(:selected),
+window.nemo-translucent .sidebar:not(:selected) {
+    background-color: transparent;
+    background-image: none;
+}
+/* sorotan item yang dipilih tetap terlihat */
+window.nemo-translucent .view:selected,
+window.nemo-translucent .sidebar:selected,
+window.nemo-translucent .view:selected:focus {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+/* === akhir Nemo transparan === */
