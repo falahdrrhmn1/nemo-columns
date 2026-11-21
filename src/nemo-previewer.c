@@ -34,6 +34,30 @@ G_DEFINE_TYPE (NemoPreviewer, nemo_previewer, G_TYPE_OBJECT);
 #define PREVIEWER_DBUS_IFACE "org.nemo.Preview"
 #define PREVIEWER_DBUS_PATH "/org/nemo/Preview"
 
+/* Fallback: GNOME Sushi's legacy interface has the same ShowFile (sib) signature. */
+#define SUSHI_DBUS_NAME "org.gnome.NautilusPreviewer"
+#define SUSHI_DBUS_IFACE "org.gnome.NautilusPreviewer"
+#define SUSHI_DBUS_PATH "/org/gnome/NautilusPreviewer"
+
+typedef struct {
+  NemoPreviewer *self;
+  gchar *uri;
+  guint xid;
+  gboolean close_if_already_visible;
+} ShowFileData;
+
+static void
+show_file_data_free (ShowFileData *data)
+{
+  g_object_unref (data->self);
+  g_free (data->uri);
+  g_free (data);
+}
+
+static void sushi_show_file_ready_cb (GObject *source,
+                                      GAsyncResult *res,
+                                      gpointer user_data);
+
 static NemoPreviewer *singleton = NULL;
 
 struct _NemoPreviewerPriv {
@@ -102,23 +126,63 @@ nemo_previewer_class_init (NemoPreviewerClass *klass)
 }
 
 static void
+sushi_show_file_ready_cb (GObject *source,
+                          GAsyncResult *res,
+                          gpointer user_data)
+{
+  ShowFileData *data = user_data;
+  GError *error = NULL;
+  GVariant *ret;
+
+  ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), res, &error);
+  if (ret != NULL)
+    g_variant_unref (ret);
+
+  if (error != NULL) {
+    DEBUG ("Unable to call ShowFile on Sushi: %s", error->message);
+    g_error_free (error);
+  }
+
+  show_file_data_free (data);
+}
+
+static void
 previewer_show_file_ready_cb (GObject *source,
                               GAsyncResult *res,
                               gpointer user_data)
 {
-  NemoPreviewer *self = user_data;
+  ShowFileData *data = user_data;
   GError *error = NULL;
+  GVariant *ret;
 
-  g_dbus_connection_call_finish (self->priv->connection,
-                                 res, &error);
+  ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), res, &error);
+  if (ret != NULL)
+    g_variant_unref (ret);
 
   if (error != NULL) {
-    DEBUG ("Unable to call ShowFile on NemoPreviewer: %s",
+    DEBUG ("Unable to call ShowFile on NemoPreviewer: %s, trying Sushi",
            error->message);
     g_error_free (error);
+
+    /* nemo-preview is not installed: try GNOME Sushi instead */
+    g_dbus_connection_call (G_DBUS_CONNECTION (source),
+                            SUSHI_DBUS_NAME,
+                            SUSHI_DBUS_PATH,
+                            SUSHI_DBUS_IFACE,
+                            "ShowFile",
+                            g_variant_new ("(sib)",
+                              data->uri, (gint) data->xid,
+                              data->close_if_already_visible),
+                            NULL,
+                            G_DBUS_CALL_FLAGS_NONE,
+                            -1,
+                            NULL,
+                            sushi_show_file_ready_cb,
+                            data);
+    return;
   }
 
-  g_object_unref (self);
+  show_file_data_free (data);
 }
 
 static void
@@ -158,6 +222,12 @@ nemo_previewer_call_show_file (NemoPreviewer *self,
     return;
   }
 
+  ShowFileData *data = g_new0 (ShowFileData, 1);
+  data->self = g_object_ref (self);
+  data->uri = g_strdup (uri);
+  data->xid = xid;
+  data->close_if_already_visible = close_if_already_visible;
+
   g_dbus_connection_call (self->priv->connection,
                           PREVIEWER_DBUS_NAME,
                           PREVIEWER_DBUS_PATH,
@@ -170,7 +240,7 @@ nemo_previewer_call_show_file (NemoPreviewer *self,
                           -1,
                           NULL,
                           previewer_show_file_ready_cb,
-                          g_object_ref (self));
+                          data);
 }
 
 void
