@@ -602,6 +602,58 @@ on_menu_selection_done (GtkMenuShell *menushell,
 	window->details->menu_hide_delay_id = g_timeout_add (0, (GSourceFunc) hide_menu_on_delay, window);
 }
 
+/* Try to give the window an RGBA visual so that the user can make its
+ * background translucent from gtk.css (like a transparent terminal).
+ * This must happen before the window is realized. When no compositing
+ * manager is running (or the screen has no RGBA visual) we fall back to
+ * the screen's system visual, so nothing changes visually.
+ */
+static void
+nemo_window_setup_rgba_visual (NemoWindow *window)
+{
+	GdkScreen *screen;
+	GdkVisual *visual;
+
+	/* The desktop window is a NemoWindow subclass too, but it must keep
+	 * its own visual handling. */
+	if (window->details->disable_chrome) {
+		return;
+	}
+
+	screen = gtk_window_get_screen (GTK_WINDOW (window));
+	if (screen == NULL) {
+		return;
+	}
+
+	visual = NULL;
+	if (gdk_screen_is_composited (screen)) {
+		visual = gdk_screen_get_rgba_visual (screen);
+	}
+	if (visual == NULL) {
+		visual = gdk_screen_get_system_visual (screen);
+	}
+
+	if (visual != NULL) {
+		gtk_widget_set_visual (GTK_WIDGET (window), visual);
+	}
+}
+
+static void
+nemo_window_composited_changed_cb (GdkScreen *screen,
+				   gpointer user_data)
+{
+	NemoWindow *window = NEMO_WINDOW (user_data);
+
+	/* The visual of a realized widget cannot be changed. If compositing
+	 * is toggled at runtime we simply keep the current visual: no crash
+	 * and no garbage. Only not-yet-realized windows are updated. */
+	if (gtk_widget_get_realized (GTK_WIDGET (window))) {
+		return;
+	}
+
+	nemo_window_setup_rgba_visual (window);
+}
+
 static void
 nemo_window_constructed (GObject *self)
 {
@@ -621,6 +673,15 @@ nemo_window_constructed (GObject *self)
 
 	G_OBJECT_CLASS (nemo_window_parent_class)->constructed (self);
 	gtk_window_set_application (GTK_WINDOW (window), GTK_APPLICATION (application));
+
+	/* Must be done before the window is realized. */
+	nemo_window_setup_rgba_visual (window);
+	if (gtk_window_get_screen (GTK_WINDOW (window)) != NULL) {
+		g_signal_connect_object (gtk_window_get_screen (GTK_WINDOW (window)),
+					 "composited-changed",
+					 G_CALLBACK (nemo_window_composited_changed_cb),
+					 window, 0);
+	}
 
 	/* disable automatic menubar handling, since we show our regular
 	 * menubar together with the app menu.

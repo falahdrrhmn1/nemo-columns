@@ -417,6 +417,8 @@ column_new (NemoColumnView *view, GFile *location, char *highlight_uri)
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scroller),
 					     GTK_SHADOW_IN);
 	gtk_widget_set_size_request (scroller, COLUMN_VIEW_WIDTH, -1);
+	gtk_style_context_add_class (gtk_widget_get_style_context (scroller),
+				     "nemo-column-view-column");
 
 	column->store = gtk_list_store_new (COLUMN_NUM_COLUMNS,
 					    GDK_TYPE_PIXBUF,
@@ -435,6 +437,8 @@ column_new (NemoColumnView *view, GFile *location, char *highlight_uri)
 	gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tree_view), FALSE);
 	gtk_tree_view_set_enable_search (GTK_TREE_VIEW (tree_view), FALSE);
 	gtk_tree_view_set_rubber_banding (GTK_TREE_VIEW (tree_view), FALSE);
+	/* Folders open as a new column; inline expanders make no sense here. */
+	gtk_tree_view_set_show_expanders (GTK_TREE_VIEW (tree_view), FALSE);
 
 	tree_column = gtk_tree_view_column_new ();
 	gtk_tree_view_column_set_expand (tree_column, TRUE);
@@ -703,6 +707,7 @@ configure_current_tree_view (NemoColumnView *view)
 	}
 
 	gtk_tree_view_set_headers_visible (details->current_tree_view, FALSE);
+	gtk_tree_view_set_show_expanders (details->current_tree_view, FALSE);
 
 	columns = gtk_tree_view_get_columns (details->current_tree_view);
 	for (l = columns; l != NULL; l = l->next) {
@@ -1349,8 +1354,13 @@ nemo_column_view_init (NemoColumnView *view)
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (view),
 					     GTK_SHADOW_NONE);
 
+	gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (view)),
+				     "nemo-column-view");
+
 	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	details->hbox = hbox;
+	gtk_style_context_add_class (gtk_widget_get_style_context (hbox),
+				     "nemo-column-view-columns");
 
 	tree_view = nemo_list_view_get_tree_view (NEMO_LIST_VIEW (view));
 	details->current_tree_view = tree_view;
@@ -1366,6 +1376,8 @@ nemo_column_view_init (NemoColumnView *view)
 					     GTK_SHADOW_IN);
 	gtk_widget_set_size_request (current_scroller, COLUMN_VIEW_WIDTH, -1);
 	details->current_scroller = current_scroller;
+	gtk_style_context_add_class (gtk_widget_get_style_context (current_scroller),
+				     "nemo-column-view-column");
 
 	gtk_container_add (GTK_CONTAINER (current_scroller), GTK_WIDGET (tree_view));
 	g_object_unref (tree_view);
