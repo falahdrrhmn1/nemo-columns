@@ -55,6 +55,7 @@ struct _NemoToolbarPriv {
     GtkWidget *icon_view_button;
     GtkWidget *list_view_button;
     GtkWidget *compact_view_button;
+    GtkWidget *column_view_button;
     GtkWidget *show_thumbnails_button;
 
 	GtkWidget *path_bar;
@@ -351,6 +352,9 @@ nemo_toolbar_constructed (GObject *obj)
 
     self->priv->compact_view_button = toolbar_create_toolbutton (self, TRUE, NEMO_ACTION_COMPACT_VIEW);
     gtk_container_add (GTK_CONTAINER (box), self->priv->compact_view_button);
+
+    self->priv->column_view_button = toolbar_create_toolbutton (self, TRUE, NEMO_ACTION_COLUMN_VIEW);
+    gtk_container_add (GTK_CONTAINER (box), self->priv->column_view_button);
 
     gtk_container_add (GTK_CONTAINER (tool_box), GTK_WIDGET (box));
     gtk_container_add (GTK_CONTAINER (self->priv->toolbar), GTK_WIDGET (tool_box));

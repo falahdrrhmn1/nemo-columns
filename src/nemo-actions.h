@@ -48,6 +48,7 @@
 #define NEMO_ACTION_SHOW_HIDE_EXTRA_PANE "Show Hide Extra Pane"
 #define NEMO_ACTION_GO_TO_BURN_CD "Go to Burn CD"
 #define NEMO_ACTION_EDIT_LOCATION "Edit Location"
+#define NEMO_ACTION_COLUMN_VIEW "ColumnView"
 #define NEMO_ACTION_COMPACT_VIEW "CompactView"
 #define NEMO_ACTION_ICON_VIEW "IconView"
 #define NEMO_ACTION_LIST_VIEW "ListView"

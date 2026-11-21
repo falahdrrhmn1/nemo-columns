@@ -29,6 +29,7 @@
 #include "nemo-window-manage-views.h"
 
 #include "nemo-actions.h"
+#include "nemo-column-view.h"
 #include "nemo-application.h"
 #include "nemo-floating-bar.h"
 #include "nemo-location-bar.h"
@@ -948,6 +949,20 @@ got_file_info_for_view_selection_callback (NemoFile *file,
 		}
 
 		g_free (mimetype);
+	}
+
+	/* Miller column view requires a dedicated multi-column layout, so keep
+	 * it while navigating instead of falling back to the per-folder or
+	 * global default view. */
+	if (slot->content_view != NULL &&
+	    g_strcmp0 (nemo_view_get_view_id (slot->content_view),
+		       NEMO_COLUMN_VIEW_ID) == 0 &&
+	    nemo_view_factory_view_supports_uri (NEMO_COLUMN_VIEW_ID,
+						 location,
+						 nemo_file_get_file_type (file),
+						 NULL)) {
+		g_free (view_id);
+		view_id = g_strdup (NEMO_COLUMN_VIEW_ID);
 	}
 
 	if (view_id != NULL) {

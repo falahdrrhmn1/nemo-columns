@@ -32,6 +32,7 @@
 
 #include "nemo-freedesktop-dbus.h"
 #include "nemo-icon-view.h"
+#include "nemo-column-view.h"
 #include "nemo-image-properties-page.h"
 #include "nemo-list-view.h"
 #include "nemo-previewer.h"
@@ -918,6 +919,7 @@ nemo_main_application_continue_startup (NemoApplication *app)
 	/* register views */
 	nemo_icon_view_register ();
 	nemo_list_view_register ();
+	nemo_column_view_register ();
 	nemo_icon_view_compact_register ();
 #if defined(ENABLE_EMPTY_VIEW) && ENABLE_EMPTY_VIEW
 	nemo_empty_view_register ();
