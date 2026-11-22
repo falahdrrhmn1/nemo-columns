@@ -1,7 +1,9 @@
 /* === Nemo transparan (hanya Nemo hasil build ~/nemo-src, Nemo apt tidak terpengaruh) ===
- * Angka terakhir di rgba = kepekatan latar (1 = tidak transparan). Hapus blok ini untuk mematikan. */
+ * Warna mengikuti tema aktif (terang/gelap). Angka di alpha() = kepekatan latar.
+ * Hapus blok ini untuk mematikan. */
 window.nemo-window.nemo-translucent {
-    background-color: rgba(24, 24, 24, 0.80);
+    background-color: alpha(@theme_bg_color, 0.80);
+    color: @theme_fg_color;
     background-image: none;
 }
 window.nemo-translucent grid, window.nemo-translucent box, window.nemo-translucent paned,
